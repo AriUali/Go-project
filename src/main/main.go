@@ -1,55 +1,92 @@
 package main
 
-import  ("errors")
+import (
+	"database/sql"
+	"fmt"
+	"html/template"
+	"log"
+	"net/http"
+	_ "github.com/mattn/go-sqlite3"
+)
 
-type List struct {
-	Id          int    `json:"id" db:"id"`
-	Title       string `json:"title" db:"title" binding:"required"`
-	Description string `json:"description" db:"description"`
+type product struct {
+	id      int
+	model   string
+	company string
+	price   int
 }
 
-type UsersList struct {
-	Id     int
-	UserId int
-	ListId int
-}
+var database *sql.DB
 
-type Item struct {
-	Id          int    `json:"id" db:"id"`
-	Title       string `json:"title" db:"title" binding:"required"`
-	Description string `json:"description" db:"description"`
-	Done        bool   `json:"done" db:"done"`
-}
+func IndexHandler(w http.ResponseWriter, r *http.Request) {
 
-type ListsItem struct {
-	Id     int
-	ListId int
-	ItemId int
-}
-
-type UpdateListInput struct {
-	Title       *string `json:"title"`
-	Description *string `json:"description"`
-}
-
-func (i UpdateListInput) Validate() error {
-	if i.Title == nil && i.Description == nil {
-		return errors.New("update structure has no values")
+	db, err := sql.Open("sqlite3", "store.db")
+	if err != nil {
+		panic(err)
 	}
+	defer db.Close()
 
-	return nil
-}
-
-type UpdateItemInput struct {
-	Title       *string `json:"title"`
-	Description *string `json:"description"`
-	Done        *bool   `json:"done"`
-}
-
-func (i UpdateItemInput) Validate() error {
-	if i.Title == nil && i.Description == nil && i.Done == nil {
-		return errors.New("update structure has no values")
+	rows, err := database.Query("select * from products")
+	if err != nil {
+		panic(err)
 	}
+	defer rows.Close()
+	products := []product{}
 
-	return nil
+	for rows.Next() {
+		p := product{}
+		err := rows.Scan(&p.id, &p.model, &p.company, &p.price)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		products = append(products, p)
+	}
+	// for _, p := range products {
+	// 	fmt.Println(p.id, p.model, p.company, p.price)
+	// }
+	tmpl, _ := template.ParseFiles("templates/index.html")
+	tmpl.Execute(w, products)
+
 }
+
+// функция добавления данных
+
+func CreateHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+
+		err := r.ParseForm()
+		if err != nil {
+			log.Println(err)
+		}
+		model := r.FormValue("model")
+		company := r.FormValue("company")
+		price := r.FormValue("price")
+
+		_, err = database.Exec("insert into productdb.Products (model, company, price) values (?, ?, ?)",
+			model, company, price)
+
+		if err != nil {
+			log.Println(err)
+		}
+		http.Redirect(w, r, "/", 301)
+	} else {
+		http.ServeFile(w, r, "templates/create.html")
+	}
+}
+
+func main() {
+
+	db, err := sql.Open("sqlite3", "store.db")
+	if err != nil {
+		log.Println(err)
+	}
+	database = db
+	defer db.Close()
+	http.HandleFunc("/", IndexHandler)
+	// http.HandleFunc("/create", CreateHandler)
+
+	fmt.Println("Server is listening...")
+	http.ListenAndServe(":8181", nil)
+}
+
