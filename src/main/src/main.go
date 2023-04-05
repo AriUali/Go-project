@@ -23,6 +23,7 @@ type Product struct {
 	Model   string
 	Company string
 	Price   int
+	Rating  int
 }
 
 
@@ -131,6 +132,7 @@ func main() {
 	http.HandleFunc("/loginauth", loginAuthHandler)
 	http.HandleFunc("/register", registerHandler)
 	http.HandleFunc("/registerauth", registerAuthHandler)
+	http.HandleFunc("/rate", rateHandler)
 
 	fmt.Println("Server is listening...")
 	http.ListenAndServe(":8181", nil)
@@ -337,4 +339,24 @@ func loginAuthHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("incorrect password")
 	tpl.ExecuteTemplate(w, "login.html", "check username and password")
 
+}
+
+
+func viewHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl := template.Must(template.ParseFiles("template.html"))
+	tmpl.Execute(w, products)
+}
+
+func rateHandler(w http.ResponseWriter, r *http.Request) {
+	itemId := r.FormValue("id")
+	rating := r.FormValue("rating")
+
+	for i, item := range Products {
+		if fmt.Sprintf("%d", item.Id) == itemId {
+			Products[i].Rating = len(rating)
+			break
+		}
+	}
+
+	http.Redirect(w, r, "/", http.StatusFound)
 }
