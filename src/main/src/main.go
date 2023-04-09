@@ -18,12 +18,23 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type PageData struct {
+    Items []Item
+}
+
+
+type Comment struct {
+    Author string
+    Text   string
+}
+
 type Product struct {
 	Id      int
 	Model   string
 	Company string
 	Price   int
 	Rating  int
+	Comments []Comment
 }
 
 
@@ -136,7 +147,87 @@ func main() {
 
 	fmt.Println("Server is listening...")
 	http.ListenAndServe(":8181", nil)
+
+
+	//ADDING COMMENTS
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+        data := PageData{Items: items}
+        tmpl := template.Must(template.ParseFiles("index.html"))
+        if r.Method == http.MethodPost {
+            id := r.FormValue("id")
+            comment := Comment{Author: r.FormValue("author"), Text: r.FormValue("comment")}
+            err := addComment(db, id, comment)
+            if err != nil {
+                log.Fatal(err)
+            }
+            items, err = getItems(db)
+            if err != nil {
+                log.Fatal(err)
+            }
+            data.Items = items
+        }
+        tmpl.Execute(w, data)
+    })
+
 }
+
+
+func getItems(db *sql.DB) ([]Item, error) {
+    rows, err := db.Query("SELECT id, model, company, price, rating FROM items")
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    items := []Item{}
+    for rows.Next() {
+        var id, price int
+        var model, company string
+        var rating float64
+        err := rows.Scan(&id, &model, &company, &price, &rating)
+        if err != nil {
+            return nil, err
+        }
+        comments, err := getComments(db, id)
+        if err != nil {
+            return nil, err
+        }
+        items = append(items, Item{Id: id, Model: model, Company: company, Price: price, Rating: rating, Comments: comments})
+    }
+
+    return items, nil
+}
+
+
+func getComments(db *sql.DB, id int) ([]Comment, error) {
+    rows, err := db.Query("SELECT author, text FROM comments WHERE item_id=?", id)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    comments := []Comment{}
+    for rows.Next() {
+        var author, text string
+        err := rows.Scan(&author, &text)
+        if err != nil {
+            return nil, err
+        }
+        comments = append(comments, Comment{Author: author, Text: text})
+    }
+
+    return comments, nil
+}
+
+
+
+func addComment(db *sql.DB, id string, comment Comment) error {
+    _, err := db.Exec("INSERT INTO comments (item_id, author, text) VALUES (?, ?, ?)", id, comment.Author, comment.Text)
+    if err != nil {
+        return err
+}
+}
+
 
 var tpl *template.Template
 var database *sql.DB
