@@ -171,6 +171,27 @@ func main() {
 
 }
 
+comments := make(map[int][]Comment)
+for rows.Next() {
+	var itemID, commentID int
+	var itemName, itemDescription, commentContent string
+	var itemPrice int
+	err := rows.Scan(&itemID, &itemName, &itemDescription, &itemPrice, &commentID, &itemID, &commentContent)
+	if err != nil {
+		return nil, err
+	}
+	comments[itemID] = append(comments[itemID], Comment{ID: commentID, ItemID: itemID, Content: commentContent})
+}
+
+// Group items by ID
+items := make(map[int]Item)
+for itemID, commentList := range comments {
+	item, ok := items[itemID]
+	if !ok {
+		item = Item{ID: itemID, Comments: commentList}
+	}
+	item.Name = itemName
+	item.Description = itemDescription
 
 func getItems(db *sql.DB) ([]Item, error) {
     rows, err := db.Query("SELECT id, model, company, price, rating FROM items")

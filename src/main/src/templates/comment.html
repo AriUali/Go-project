@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Items</title>
+</head>
+<body>
+    {{ range $index, $item := .Items }}
+    <h1>{{ $item.Name }}</h1>
+    <p>{{ $item.Description }}</p>
+    <p>Price: ${{ $item.Price }}</p>
+    <h2>Comments</h2>
+    <ul>
+        {{ range $index, $comment := $item.Comments }}
+        <li>{{ $comment.Content }}</li>
+        {{ end }}
+    </ul>
+    <form method="POST">
+        <input type="hidden" name="item_id" value="{{ $item.ID }}">
+        <textarea name="comment_content"></textarea><br>
+        <input type="submit" value="Add Comment">
+    </form>
+    {{ end }}
+</body>
+</html>
