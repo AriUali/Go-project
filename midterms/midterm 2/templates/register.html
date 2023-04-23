@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+                  
+            body {
+              background-color: lightblue;
+              font-family: Arial, sans-serif;
+            }
+            
+            .login-container {
+              width: 400px;
+              margin: 0 auto;
+              padding: 20px;
+              background-color: #fff;
+              border-radius: 5px;
+              box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            }
+            
+            h1 {
+              text-align: center;
+            }
+            
+            label {
+              display: block;
+              margin-bottom: 10px;
+              font-weight: bold;
+            }
+            
+            input[type="text"],
+            input[type="password"] {
+              width: 100%;
+              padding: 10px;
+              margin-bottom: 20px;
+              border: none;
+              border-radius: 5px;
+              box-shadow: inset 0 0 5px rgba(3, 0.5, 0, 0.8);
+            }
+            
+            input[type="submit"] {
+              width: 100%;
+              padding: 10px;
+              background-color: #4CAF50;
+              color: #fff;
+              border: none;
+              border-radius: 5px;
+              cursor: pointer;
+              font-size: 16px;
+              font-weight: bold;
+            }
+            
+            input[type="submit"]:hover {
+              background-color: #3e8e41;
+            }
+            
+      
+      
+            </style>
+        </head>
+<body>
+<div class="login-container">
+<h2>Account Registration</h2><br>
+<ul>
+    <li>usernames must contain only letters or numbers</li>
+    <li>usernames must be longer than 4 characters but shorter than 51</li>
+    <li>passwords must contain a uppercase letter, lowercase letter, number, and special character</li>
+    <li>passwords must be greater than 11 characters but less than 60</li>
+</ul><br>
+
+<form action="/registerauth" method="POST">
+    <label for="username">Name:</label><br>
+    <input type="text" id="username" name="username"><br>
+    <label for="password">Password:</label><br>
+    <input type="password" id="password" name="password"><br><br>
+    <input type="submit" value="Submit">
+</form> 
+
+<br><br>
+{{if .}}
+    {{.}}
+{{end}}
+</div>
+
+
+
+
+</body>
+</html>
