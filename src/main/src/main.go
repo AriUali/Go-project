@@ -1,5 +1,4 @@
 package main
-
 import (
 	"database/sql"
 	"fmt"
@@ -7,36 +6,20 @@ import (
 	"log"
 	"net/http"
 	"unicode"
-
 	"strings"
-
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
-
-	// "github.com/gorilla/context"
-	//"github.com/gorilla/sessions"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type PageData struct {
-    Items []Item
-}
-
-
-type Comment struct {
-    Author string
-    Text   string
-}
-
 type Product struct {
-	Id      int
-	Model   string
-	Company string
-	Price   int
-	Rating  int
-	Comments []Comment
+	Id       int
+	Model    string
+	Company  string
+	Price    int
+	Comments string
+	Rating   int
 }
-
 
 func main() {
 	var err error
@@ -54,6 +37,10 @@ func main() {
 	database = db
 	defer db.Close()
 
+
+
+		
+
 	http.HandleFunc("/searching", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
 			fmt.Fprintf(w, `
@@ -61,6 +48,54 @@ func main() {
 				<html>
 					<head>
 						<title>Search Products</title>
+						<style>          
+						body {
+						  background-color: lightblue;
+						  font-family: Arial, sans-serif;
+						}						
+						.login-container {
+						  width: 400px;
+						  margin: 0 auto;
+						  padding: 20px;
+						  background-color: #fff;
+						  border-radius: 5px;
+						  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+						}						
+						h1 {
+						  text-align: center;
+						}
+						
+						label {
+						  display: block;
+						  margin-bottom: 10px;
+						  font-weight: bold;
+						}
+						
+						input[type="text"],
+						input[type="number"] {
+						  width: 100%;
+						  padding: 10px;
+						  margin-bottom: 20px;
+						  border: none;
+						  border-radius: 5px;
+						  box-shadow: inset 0 0 5px rgba(3, 0.5, 0, 0.8);
+						}
+						
+						input[type="submit"] {
+						  width: 100%;
+						  padding: 10px;
+						  background-color: #4CAF50;
+						  color: #fff;
+						  border: none;
+						  border-radius: 5px;
+						  cursor: pointer;
+						  font-size: 16px;
+						  font-weight: bold;
+						}						
+						input[type="submit"]:hover {
+						  background-color: #3e8e41;
+						}				  
+						</style>					
 					</head>
 					<body>
 						<h1>Search Products</h1>
@@ -81,7 +116,7 @@ func main() {
 			return
 		}
 
-		rows, err := db.Query("SELECT id, model, company, price FROM products WHERE model LIKE ?", "%"+name+"%")
+		rows, err := db.Query("SELECT id, model, company, price,comments,rating FROM products WHERE model LIKE ?", "%"+name+"%")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -91,7 +126,7 @@ func main() {
 		var products []Product
 		for rows.Next() {
 			var product Product
-			if err := rows.Scan(&product.Id, &product.Model, &product.Company, &product.Price); err != nil {
+			if err := rows.Scan(&product.Id, &product.Model, &product.Company, &product.Price, &product.Comments, &product.Rating); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
@@ -117,7 +152,7 @@ func main() {
 						<li>No results found</li>
 						{{end}}
 					</ul>
-					<a href="/search">Back to search</a>
+					<a href="/searching">Back to search</a>
 				</body>
 			</html>
 		`))
@@ -128,127 +163,23 @@ func main() {
 		}
 	})
 
-
 	router := mux.NewRouter()
 	router.HandleFunc("/", IndexHandler)
 	router.HandleFunc("/create", CreateHandler)
 	router.HandleFunc("/edit/{id:[0-9]+}", EditPage).Methods("GET")
 	router.HandleFunc("/edit/{id:[0-9]+}", EditHandler).Methods("POST")
 	router.HandleFunc("/delete/{id:[0-9]+}", DeleteHandler)
-	//router.HandleFunc("/searchitem", searchitem)
-
 	http.Handle("/", router)
-
 	http.HandleFunc("/login", loginHandler)
 	http.HandleFunc("/loginauth", loginAuthHandler)
 	http.HandleFunc("/register", registerHandler)
 	http.HandleFunc("/registerauth", registerAuthHandler)
-	http.HandleFunc("/rate", rateHandler)
+
 
 	fmt.Println("Server is listening...")
 	http.ListenAndServe(":8181", nil)
 
-
-	//ADDING COMMENTS
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-        data := PageData{Items: items}
-        tmpl := template.Must(template.ParseFiles("index.html"))
-        if r.Method == http.MethodPost {
-            id := r.FormValue("id")
-            comment := Comment{Author: r.FormValue("author"), Text: r.FormValue("comment")}
-            err := addComment(db, id, comment)
-            if err != nil {
-                log.Fatal(err)
-            }
-            items, err = getItems(db)
-            if err != nil {
-                log.Fatal(err)
-            }
-            data.Items = items
-        }
-        tmpl.Execute(w, data)
-    })
-
 }
-
-comments := make(map[int][]Comment)
-for rows.Next() {
-	var itemID, commentID int
-	var itemName, itemDescription, commentContent string
-	var itemPrice int
-	err := rows.Scan(&itemID, &itemName, &itemDescription, &itemPrice, &commentID, &itemID, &commentContent)
-	if err != nil {
-		return nil, err
-	}
-	comments[itemID] = append(comments[itemID], Comment{ID: commentID, ItemID: itemID, Content: commentContent})
-}
-
-// Group items by ID
-items := make(map[int]Item)
-for itemID, commentList := range comments {
-	item, ok := items[itemID]
-	if !ok {
-		item = Item{ID: itemID, Comments: commentList}
-	}
-	item.Name = itemName
-	item.Description = itemDescription
-
-func getItems(db *sql.DB) ([]Item, error) {
-    rows, err := db.Query("SELECT id, model, company, price, rating FROM items")
-    if err != nil {
-        return nil, err
-    }
-    defer rows.Close()
-
-    items := []Item{}
-    for rows.Next() {
-        var id, price int
-        var model, company string
-        var rating float64
-        err := rows.Scan(&id, &model, &company, &price, &rating)
-        if err != nil {
-            return nil, err
-        }
-        comments, err := getComments(db, id)
-        if err != nil {
-            return nil, err
-        }
-        items = append(items, Item{Id: id, Model: model, Company: company, Price: price, Rating: rating, Comments: comments})
-    }
-
-    return items, nil
-}
-
-
-func getComments(db *sql.DB, id int) ([]Comment, error) {
-    rows, err := db.Query("SELECT author, text FROM comments WHERE item_id=?", id)
-    if err != nil {
-        return nil, err
-    }
-    defer rows.Close()
-
-    comments := []Comment{}
-    for rows.Next() {
-        var author, text string
-        err := rows.Scan(&author, &text)
-        if err != nil {
-            return nil, err
-        }
-        comments = append(comments, Comment{Author: author, Text: text})
-    }
-
-    return comments, nil
-}
-
-
-
-func addComment(db *sql.DB, id string, comment Comment) error {
-    _, err := db.Exec("INSERT INTO comments (item_id, author, text) VALUES (?, ?, ?)", id, comment.Author, comment.Text)
-    if err != nil {
-        return err
-}
-}
-
 
 var tpl *template.Template
 var database *sql.DB
@@ -264,9 +195,11 @@ func CreateHandler(w http.ResponseWriter, r *http.Request) {
 		model := r.FormValue("model")
 		company := r.FormValue("company")
 		price := r.FormValue("price")
+		comments := r.FormValue("comments")
+		rating := r.FormValue("rating")
 
-		_, err = database.Exec("insert into productdb.Products (model, company, price) values (?, ?, ?)",
-			model, company, price)
+		_, err = database.Exec("insert into productdb.Products (model, company, price,comments,rating) values (?, ?, ?,?,?)",
+			model, company, price, comments, rating)
 
 		if err != nil {
 			log.Println(err)
@@ -296,7 +229,7 @@ func EditPage(w http.ResponseWriter, r *http.Request) {
 
 	row := database.QueryRow("select * from productdb.Products where id = ?", id)
 	prod := Product{}
-	err := row.Scan(&prod.Id, &prod.Model, &prod.Company, &prod.Price)
+	err := row.Scan(&prod.Id, &prod.Model, &prod.Company, &prod.Price, &prod.Comments, &prod.Rating)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, http.StatusText(404), http.StatusNotFound)
@@ -316,9 +249,11 @@ func EditHandler(w http.ResponseWriter, r *http.Request) {
 	model := r.FormValue("model")
 	company := r.FormValue("company")
 	price := r.FormValue("price")
+	comments := r.FormValue("comments")
+	rating := r.FormValue("rating")
 
-	_, err = database.Exec("update productdb.Products set model=?, company=?, price = ? where id = ?",
-		model, company, price, id)
+	_, err = database.Exec("update productdb.Products set model=?, company=?, price = ?,comments =?, rating =? where id = ?",
+		model, company, price, comments, rating ,id)
 
 	if err != nil {
 		log.Println(err)
@@ -337,7 +272,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 
 	for rows.Next() {
 		p := Product{}
-		err := rows.Scan(&p.Id, &p.Model, &p.Company, &p.Price)
+		err := rows.Scan(&p.Id, &p.Model, &p.Company, &p.Price, &p.Comments, &p.Rating)
 		if err != nil {
 			fmt.Println(err)
 			continue
@@ -356,7 +291,6 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func registerAuthHandler(w http.ResponseWriter, r *http.Request) {
-
 	fmt.Println("*****registerAuthHandler running*****")
 	errors := r.ParseForm()
 	if errors != nil {
@@ -453,22 +387,4 @@ func loginAuthHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-
-func viewHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("template.html"))
-	tmpl.Execute(w, products)
-}
-
-func rateHandler(w http.ResponseWriter, r *http.Request) {
-	itemId := r.FormValue("id")
-	rating := r.FormValue("rating")
-
-	for i, item := range Products {
-		if fmt.Sprintf("%d", item.Id) == itemId {
-			Products[i].Rating = len(rating)
-			break
-		}
-	}
-
-	http.Redirect(w, r, "/", http.StatusFound)
-}
+// {{"congrats, your account has been successfully created"}}

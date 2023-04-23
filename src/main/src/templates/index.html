@@ -3,31 +3,117 @@
     <head>
         <meta charset="UTF-8">
         <title>Products</title>
-    </head>
+    
    
 
-    <body>
-        
-        <h2>Список товаров</h2>
-        <p><a style="text-decoration: none;" href="/register">Create new account</a></p>
-        <p><a style="text-decoration: none;" href="/login">Login</a></p>
-        <p><a style="text-decoration: none;" href="/create">Add new product</a></p>
-        <p><a style="text-decoration: none;" href="/searching">Search by product model</a></p>
+    
+     
+            
+            <style>
+          
+              body {
+                font-family: Arial, sans-serif;
+                background-color: #f2f2f2;
+                margin: 0;
+                padding: 0;
+              }
+              
+              .header {
+                background-color: green;
+                color: white;
+                padding: 20px;
+                text-align: center;
+              }
+              
+              .container {
+                margin: 20px;
+                padding: 20px;
+                background-color: white;
+                box-shadow: 0px 0px 10px #ccc;
+              }
+              img{
+                margin:2px 40px 2px 600px;
+                
+              }
+              
+              h1 {
+                margin-top: 0;
+              }
+              h2{
+                text-align: center;
+              }
+             table{
+                text-align: center;
+                
+              }
+              
+              p {
+                line-height: 1.5;
+              }
+              
+              a {
+                color: #333;
+                text-decoration: none;
+              }
+              
+              a:hover {
+                color: black;
+              }
+              th, td {
+                padding-top: 10px;
+                padding-bottom: 40px;
+                padding-left: 40px;
+                padding-right: 50px;
+              }
+            </style>
 
-        <table>
-            <thead><th>Id</th><th>Model</th><th>Company</th><th>Price</th><th></th></thead>
-            {{range . }}
-            <tr style="  " >
-                <td>{{.Id}}</td>
-                <td>{{.Model}}</td>
-                <td>{{.Company}}</td>
-                <td>{{.Price}}</td>
-                <td><a style="text-decoration: none;" href="/edit/{{.Id}}">Edit product</a> |
-                    <a style="text-decoration: none;" href="/delete/{{.Id}}">Delete product</a>
-                </td>
-            </tr>
-            {{end}}
-        </table>
+        </head>
+        
+          <body>
+            <header class="header">
+                           <h1>Welcome to My E-commerce Website   <img src="https://blog-frontend.envato.com/cdn-cgi/image/width=1200,quality=85,format=auto/uploads/2022/04/E-commerce-App-JPG-File-scaled.jpg" alt="Italian Trulli"  width="95" height="90">
+                           </h1>
+
+            </header>
+            <div class="container">
+              <h2>About Us</h2>
+              <p>We are a team of developers who create websites and applications for businesses and individuals. Our goal is to provide our clients with high-quality, user-friendly products that help them achieve their goals.</p>
+              <h2>Services</h2>
+              <ul>
+                <li><p><a style="text-decoration: none;" href="/register">Create new account</a></p></li>
+                <li><p><a style="text-decoration: none;" href="/login">Login</a></p></li>
+                <li> <p><a style="text-decoration: none;" href="/create">Add new product</a></p></li>
+                <li><p><a style="text-decoration: none;" href="/searching">Search by product model</a></p></li>
+              </ul>
+
+              <h2 style=" font-size:24px; font-weight:bold">Item List</h2>
+              <table>
+                <thead><th>Id</th><th>Model</th><th>Company</th><th>Price</th><th>Comment</th> <th>Rating</th> <th></th></thead>
+                {{range . }}
+                <tr style="  " >
+                    <td>{{.Id}}</td>
+                    <td>{{.Model}}</td>
+                    <td>{{.Company}}</td>
+                    <td>{{.Price}}</td>
+                    <td>{{.Comments}}</td>
+                    <td>{{.Rating}}</td>
+
+                    <td><a style="text-decoration: none; " href="/edit/{{.Id}}">  Edit product </a> |
+                        <a style="text-decoration: none;" href="/delete/{{.Id}}">Delete product</a>
+                    </td>
+                </tr>
+                {{end}}
+            </table>
+
+
+
+              <h2>Contact Us</h2>
+              <p>You can reach us at <a href="arailym:info@example.com">info@example.com</a> or by phone at (555) 555-5555.</p>
+            </div>
+                
+    
+
+     
 
         <br><br>
 

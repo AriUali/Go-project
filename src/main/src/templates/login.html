@@ -1,9 +1,68 @@
 <!DOCTYPE html>
 <html>
+    <head>
+   
+    <style>
+          
+      body {
+        background-color: lightblue;
+        font-family: Arial, sans-serif;
+      }
+      
+      .login-container {
+        width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+      }
+      
+      h1 {
+        text-align: center;
+      }
+      
+      label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: bold;
+      }
+      
+      input[type="text"],
+      input[type="password"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 20px;
+        border: none;
+        border-radius: 5px;
+        box-shadow: inset 0 0 5px rgba(3, 0.5, 0, 0.8);
+      }
+      
+      input[type="submit"] {
+        width: 100%;
+        padding: 10px;
+        background-color: #4CAF50;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+      }
+      
+      input[type="submit"]:hover {
+        background-color: #3e8e41;
+      }
+      
+
+
+      </style>
+    </head>
 <body>
 
-<h2>Login</h2><br>
 
+<div class="login-container">
+  <h1>Login</h1>
 <form action="/loginauth" method="POST">
     <label for="username">Name:</label><br>
     <input type="text" id="username" name="username"><br>
@@ -11,6 +70,7 @@
     <input type="password" id="password" name="password"><br><br>
     <input type="submit" value="Submit">
 </form> 
+</div>
 
 <br><br>
 {{if .}}
